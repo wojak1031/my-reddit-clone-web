@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reddit Clone</title>
+  <style>
+    /* Basic Reset */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f5f5f5;
+      color: #333;
+      margin: 0;
+    }
+
+    /* Main Container */
+    .container {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    /* Header */
+    header {
+      background-color: #ff4500;
+      color: white;
+      padding: 20px;
+      text-align: center;
+      font-size: 2.5rem;
+      font-weight: bold;
+    }
+
+    /* Post Container */
+    .post-container {
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      margin-bottom: 20px;
+      padding: 20px;
+    }
+
+    .post {
+      display: flex;
+      flex-direction: row;
+    }
+
+    .post-content {
+      flex: 1;
+    }
+
+    .post-title {
+      font-size: 1.8rem;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .post-body {
+      font-size: 1rem;
+      color: #555;
+    }
+
+    /* Comment Section */
+    .comment-section {
+      margin-top: 20px;
+    }
+
+    .comment {
+      padding: 10px;
+      background-color: #f9f9f9;
+      margin: 10px 0;
+      border-radius: 5px;
+    }
+
+    .comment-author {
+      font-weight: bold;
+      color: #333;
+    }
+
+    .comment-body {
+      color: #666;
+    }
+
+    .reply-button {
+      margin-top: 5px;
+      padding: 5px 10px;
+      background-color: #ff4500;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .reply-button:hover {
+      background-color: #e04d00;
+    }
+
+    /* Voting Buttons */
+    .vote-buttons {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-right: 20px;
+    }
+
+    .vote-button {
+      background-color: #ddd;
+      border: none;
+      padding: 10px;
+      cursor: pointer;
+      margin: 5px 0;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      font-size: 18px;
+    }
+
+    .vote-button:hover {
+      background-color: #bbb;
+    }
+
+    .upvote { color: green; }
+    .downvote { color: red; }
+
+    /* Post Form */
+    .post-form {
+      background-color: white;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      margin-bottom: 20px;
+    }
+
+    .post-form input, .post-form textarea {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    .post-form button {
+      padding: 10px;
+      background-color: #ff4500;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .post-form button:hover {
+      background-color: #e04d00;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      .post-container {
+        flex-direction: column;
+      }
+
+      .post {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      Reddit Clone
+    </header>
+
+    <!-- Post Form -->
+    <div class="post-form">
+      <h3>Create a New Post</h3>
+      <input type="text" id="post-title" placeholder="Title" />
+      <textarea id="post-body" rows="4" placeholder="Write your post here..."></textarea>
+      <button onclick="createPost()">Post</button>
+    </div>
+
+    <!-- Posts List -->
+    <div id="posts-list">
+      <!-- Posts will be dynamically inserted here -->
+    </div>
+  </div>
+
+  <script>
+    // Load posts from localStorage
+    const posts = JSON.parse(localStorage.getItem('posts')) || [];
+
+    // Function to create a new post
+    function createPost() {
+      const title = document.getElementById('post-title').value;
+      const body = document.getElementById('post-body').value;
+
+      if (title && body) {
+        const newPost = {
+          id: posts.length + 1,
+          title,
+          body,
+          comments: [],
+          votes: 0
+        };
+
+        posts.push(newPost);
+        localStorage.setItem('posts', JSON.stringify(posts));
+        renderPosts();
+      }
+    }
+
+    // Function to render posts
+    function renderPosts() {
+      const postsList = document.getElementById('posts-list');
+      postsList.innerHTML = '';
+
+      posts.forEach(post => {
+        const postElement = document.createElement('div');
+        postElement.classList.add('post-container');
+
+        postElement.innerHTML = `
+          <div class="post">
+            <div class="vote-buttons">
+              <button class="vote-button upvote" onclick="vote(${post.id}, 'up')">↑</button>
+              <span>${post.votes}</span>
+              <button class="vote-button downvote" onclick="vote(${post.id}, 'down')">↓</button>
+            </div>
+            <div class="post-content">
+              <h2 class="post-title">${post.title}</h2>
+              <p class="post-body">${post.body}</p>
+            </div>
+          </div>
+          <div class="comment-section">
+            <input type="text" placeholder="Write a comment..." id="comment-${post.id}" />
+            <button onclick="addComment(${post.id})">Comment</button>
+            <div id="comments-${post.id}">
+              ${post.comments.map(comment => `
+                <div class="comment">
+                  <p class="comment-author">Anonymous</p>
+                  <p class="comment-body">${comment.text}</p>
+                  <button class="reply-button" onclick="replyToComment(${post.id}, ${comment.id})">Reply</button>
+                  <div id="replies-${post.id}-${comment.id}">
+                    ${comment.replies.map(reply => `
+                      <div class="comment">
+                        <p class="comment-author">Anonymous</p>
+                        <p class="comment-body">${reply}</p>
+                      </div>
+                    `).join('')}
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+
+        postsList.appendChild(postElement);
+      });
+    }
+
+    // Function to handle voting
+    function vote(postId, type) {
+      const post = posts.find(p => p.id === postId);
+      if (type === 'up') {
+        post.votes++;
+      } else if (type === 'down') {
+        post.votes--;
+      }
+      localStorage.setItem('posts', JSON.stringify(posts));
+      renderPosts();
+    }
+
+    // Function to add comment
+    function addComment(postId) {
+      const commentInput = document.getElementById(`comment-${postId}`);
+      const commentText = commentInput.value;
+      if (commentText) {
+        const post = posts.find(p => p.id === postId);
+        post.comments.push({ id: post.comments.length + 1, text: commentText, replies: [] });
+        commentInput.value = '';
+        localStorage.setItem('posts', JSON.stringify(posts));
+        renderPosts();
+      }
+    }
+
+    // Function to reply to a comment
+    function replyToComment(postId, commentId) {
+      const replyText = prompt("Enter your reply:");
+      if (replyText) {
+        const post = posts.find(p => p.id === postId);
+        const comment = post.comments.find(c => c.id === commentId);
+        comment.replies.push(replyText);
+        localStorage.setItem('posts', JSON.stringify(posts));
+        renderPosts();
+      }
+    }
+
+    renderPosts();
+  </script>
+</body>
+</html>
